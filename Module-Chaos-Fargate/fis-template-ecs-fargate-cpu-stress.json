@@ -1,0 +1,31 @@
+{
+  "description": "Simulate CPU stress on ECS Fargate tasks (PayForAdoption microservice)",
+  "targets": {
+    "EcsTasks": {
+      "resourceType": "aws:ecs:task",
+      "resourceTags": {
+        "Service": "PayForAdoption"
+      },
+      "selectionMode": "COUNT(2)"
+    }
+  },
+  "actions": {
+    "EcsFargateCpuStress": {
+      "actionId": "aws:ecs:task-cpu-stress",
+      "parameters": {
+        "Duration": "600"
+      },
+      "targets": {
+        "EcsTasks": "EcsTasks"
+      }
+    }
+  },
+  "roleArn": "arn:aws:iam::<ACCOUNT_ID>:role/ecs-fargate-fis-role",
+  "stopConditions": [
+    { "source": "none" }
+  ],
+  "tags": {
+    "Name": "FIS-Workshop-ECS-FARGATE-CPU-StressTest",
+    "Environment": "chaos-lab"
+  }
+}
