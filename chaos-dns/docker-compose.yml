@@ -1,0 +1,35 @@
+services:
+  localstack:
+    image: localstack/localstack:2.1
+    environment:
+      - SERVICES=sqs,dynamodb
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+    ports:
+      - "4566:4566"
+      - "4510-4559:4510-4559"
+    volumes:
+      - ./localstack-data:/tmp/localstack
+    networks:
+      - labnet
+
+  app:
+    build: ./app
+    depends_on:
+      - localstack
+    environment:
+      - AWS_ENDPOINT=http://localstack:4566
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+      - SQS_QUEUE_NAME=orders-queue
+      - DDB_TABLE_NAME=Orders
+    ports:
+      - "5000:5000"
+    networks:
+      - labnet
+
+networks:
+  labnet:
+    driver: bridge
