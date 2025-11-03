@@ -1,0 +1,35 @@
+version: '3.8'
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chaos_ecom_web
+    ports:
+      - "5000:5000"
+    volumes:
+      - orders-data:/data
+    environment:
+      - PAYMENT_URL=http://payment-mock:5001/pay
+    depends_on:
+      - payment-mock
+
+  payment-mock:
+    build:
+      context: .
+      dockerfile: payment.Dockerfile
+    container_name: chaos_ecom_payment
+    ports:
+      - "5001:5001"
+    environment:
+      - FAIL_MODE=0
+
+  # lightweight redis (optional) — included to mimic cache dependency
+  redis:
+    image: redis:7-alpine
+    container_name: chaos_ecom_redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  orders-data:
