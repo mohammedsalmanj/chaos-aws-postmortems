@@ -181,3 +181,7 @@ Prevent automation from compounding chaos
 
 “We don’t just document AWS outages — we relive them safely.”
 Each failure is a chance to learn how complex systems behave under stress.
+
+This repo module and related experiments were inspired by the
+AWS Resilience Workshop - https://catalog.us-east-1.prod.workshops.aws/workshops/eb89c4d5-7c9a-40e0-b0bc-1cde2df1cb97/en-US/environment/bring-your-own
+
