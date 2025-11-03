@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chaos_ecom_web
+    ports:
+      - "5000:5000"
+    volumes:
+      - orders-data:/data
+    environment:
+      - PAYMENT_URL=http://payment-mock:5001/pay
+      - REDIS_HOST=redis
+      - QUEUE_NAME=payment_queue
+    depends_on:
+      - payment-mock
+      - redis
+
+  payment-mock:
+    build:
+      context: .
+      dockerfile: payment.Dockerfile
+    container_name: chaos_ecom_payment
+    ports:
+      - "5001:5001"
+    environment:
+      - FAIL_MODE=0
+
+  redis:
+    image: redis:7-alpine
+    container_name: chaos_ecom_redis
+    ports:
+      - "6379:6379"
+
+  payment-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chaos_ecom_worker
+    command: ["python", "payment-worker.py"]
+    depends_on:
+      - redis
+      - payment-mock
+    volumes:
+      - orders-data:/data
+    environment:
+      - PAYMENT_URL=http://payment-mock:5001/pay
+      - REDIS_HOST=redis
+      - QUEUE_NAME=payment_queue
+
+volumes:
+  orders-data:
