@@ -1,0 +1,41 @@
+{
+  "description": "Simulate Availability Zone power interruption in us-east-1b to validate cross-AZ resilience and failover behavior.",
+  "experimentOptions": {
+    "scenario": {
+      "name": "AZ Availability: Power Interruption",
+      "sharedParameters": {
+        "affectedAz": "us-east-1b",
+        "affectedRolesForInsufficientCapacityException": "FisServerless-FISDummyRoleForASGxxxxxxxxxxxxx",
+        "targetingTags": "{\"AzImpairmentPower\":\"Ready\"}",
+        "dnsImpactDuration": "2m",
+        "outageDuration": "10m",
+        "recoveryDuration": "5m"
+      }
+    }
+  },
+  "roleArn": "arn:aws:iam::123456789012:role/fis-az-role",
+  "stopConditions": [],
+  "logConfiguration": {
+    "cloudWatchLogsConfiguration": {
+      "logGroupArn": "arn:aws:logs:us-east-1:123456789012:log-group:FISExperiments"
+    },
+    "logSchemaVersion": 2
+  },
+  "reportConfiguration": {
+    "s3Configuration": {
+      "bucketName": "services-fisreportbucket"
+    },
+    "cloudWatchDashboardArns": [
+      "arn:aws:cloudwatch:us-east-1:123456789012:dashboard/AvailabilityZonePowerImpairment"
+    ],
+    "preExperimentDuration": "600",
+    "postExperimentDuration": "300",
+    "includeCloudWatchMetrics": true
+  },
+  "targets": {},
+  "actions": {},
+  "tags": {
+    "Name": "us-east-1b AZ Execution 1",
+    "Experiment": "AZ Availability Power Interruption"
+  }
+}

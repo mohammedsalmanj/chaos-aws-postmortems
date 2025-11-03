@@ -1,0 +1,28 @@
+{
+  "description": "EKS Pod Delete scenario - simulate accidental pod termination for PetSite app.",
+  "targets": {},
+  "actions": {},
+  "experimentOptions": {
+    "scenario": {
+      "name": "EKS Pod Delete",
+      "sharedParameters": {
+        "appSelector": "app=petsite",
+        "clusterArn": "arn:aws:eks:us-east-1:123456789012:cluster/PetSite",
+        "kubernetesServiceAccount": "eks-fis-role",
+        "targetNamespace": "default"
+      }
+    }
+  },
+  "roleArn": "arn:aws:iam::123456789012:role/eks-fis-role",
+  "stopConditions": [],
+  "logConfiguration": {
+    "cloudWatchLogsConfiguration": {
+      "logGroupArn": "arn:aws:logs:us-east-1:123456789012:log-group:FISExperiments"
+    },
+    "logSchemaVersion": 2
+  },
+  "tags": {
+    "Name": "EKS_POD_DELETE_11072025",
+    "Experiment": "EKS Pod Delete Scenario"
+  }
+}
