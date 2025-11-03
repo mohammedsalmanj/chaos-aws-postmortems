@@ -1,41 +1,98 @@
-# Local AWS-Outage-Style Chaos Lab — E-commerce (Docker)
+Local AWS-Outage-Style Chaos Lab — E-Commerce (Docker)
+🎯 Purpose
 
-Purpose:
-- Learn how outages (payment gateway, DB, full service) affect an e-commerce flow.
-- Test retries, graceful failures, and recovery procedures locally using Docker.
+Practice how common AWS-like failures (payment gateway, database, or full-service outage) affect an e-commerce transaction flow.
+Train detection, retry logic, graceful degradation, and quick recovery locally using Docker, before testing in AWS FIS.
 
-Contents:
-- app.py : simple Flask e-commerce app with /purchase, /return, /orders, /health
-- payment_mock.py : simple mock payment gateway (can be toggled to fail via FAIL_MODE)
-- Dockerfile / payment.Dockerfile : images for web and payment mock
-- docker-compose.yml : defines services (web, payment-mock, redis)
-- start.sh / stop.sh : bring up / tear down lab
-- scenario_outage_payment.sh : simulate payment gateway outage
-- scenario_outage_db.sh : simulate DB outage (removes local volume to mimic data loss)
-- scenario_full_outage.sh : stop core services to simulate full outage
-- restore.sh : restore normal operation
-- requirements.txt : python deps
+🧱 Components
+File	Purpose
+app.py	Flask web service exposing /purchase, /return, /orders, /health
+payment_mock.py	Mock payment gateway; failure toggled via FAIL_MODE env var
+Dockerfile, payment.Dockerfile	Build images for web + payment services
+docker-compose.yml	Defines stack: web, payment-mock, redis
+start.sh, stop.sh	Bring up / tear down the entire lab
+scenario_outage_payment.sh	Simulate payment-gateway outage
+scenario_outage_db.sh	Simulate DB outage (volume removal)
+scenario_full_outage.sh	Kill all core services (complete outage)
+restore.sh	Restore normal operations
+requirements.txt	Python dependencies
+⚙️ Quick Start
+# 1️⃣  Clone & enter repo
+git clone https://github.com/<yourname>/chaos-aws-postmortems.git
+cd chaos-aws-postmortems/module-1-ecom-dns-outage
 
-Quick start:
-1. Make sure Docker is installed and running.
-2. From the project root:
-   chmod +x *.sh
-   ./start.sh
-3. Validate health:
-   curl http://localhost:5000/health
-4. Trigger a purchase:
-   curl -X POST http://localhost:5000/purchase -H 'Content-Type: application/json' -d '{"item":"book","amount":9.99}'
-5. Simulate payment outage:
-   ./scenario_outage_payment.sh
-   Then issue the same purchase request to see a 502 response from /purchase.
-6. Restore:
-   ./restore.sh
+# 2️⃣  Make scripts executable
+chmod +x *.sh
 
-Notes & ideas to extend:
-- Add a reverse proxy (Traefik) and simulate network partition by stopping the proxy.
-- Add a separate "search" service and simulate partial outage using network controls (tc/netem) for latency/loss.
-- Implement retry logic in the web app to test exponential backoff.
-- Use chaos tools like `pumba` for more advanced container-level faults (network, pause, kill).
+# 3️⃣  Start baseline environment
+./start.sh
 
-Safety:
-- These scripts act on local Docker only; don't run them on production hosts.
+# 4️⃣  Validate health
+curl http://localhost:5000/health
+# → {"status":"ok"}
+
+# 5️⃣  Simulate a purchase
+curl -X POST http://localhost:5000/purchase \
+     -H 'Content-Type: application/json' \
+     -d '{"item":"book","amount":9.99}'
+# → {"status":"success"}
+
+# 6️⃣  Trigger a payment outage
+./scenario_outage_payment.sh
+
+# 7️⃣  Retry the purchase (expect failure)
+curl -X POST http://localhost:5000/purchase \
+     -H 'Content-Type: application/json' \
+     -d '{"item":"book","amount":9.99}'
+# → 502 Bad Gateway / {"error":"payment service unavailable"}
+
+# 8️⃣  Restore system
+./restore.sh
+
+# 9️⃣  Stop the lab
+./stop.sh
+
+🧪 Extra Chaos Scenarios
+Script	Description
+scenario_outage_payment.sh	Sets FAIL_MODE=1 → mock payment 5xx errors
+scenario_outage_db.sh	Removes Redis/Postgres volume → mimics DB corruption
+scenario_full_outage.sh	Stops web + payment containers (complete blackout)
+restore.sh	Brings all services & volumes back
+💥 Advanced Commands (Manual Injection)
+# Pause payment container for 30 s
+docker pause payment-mock && sleep 30 && docker unpause payment-mock
+
+# Add network latency (Linux only)
+sudo tc qdisc add dev docker0 root netem delay 200ms
+
+# Drop all outbound DNS to mimic AWS Route53 failure
+docker exec web bash -c "iptables -A OUTPUT -p udp --dport 53 -j DROP"
+
+🔬 Observability Ideas
+Tool	What to Watch
+Docker logs	Transaction errors, retries
+curl timings (-w '%{time_total}')	Measure latency impact
+New Relic / OpenTelemetry agent	Trace purchase → payment chain
+Grafana / Prometheus (optional)	Request rate, error %, latency 95p
+🧠 Learning Goals
+Topic	Skill Practiced
+Failure Isolation	Identify the root (DNS, DB, payment) quickly
+Retry Strategy	Implement exponential backoff in app.py
+Observability	Connect logs, traces, and metrics
+Recovery Process	Run restore.sh + validate health endpoints
+Communication	Write quick postmortem in /postmortems/
+💡 Ideas to Extend
+
+Add a reverse proxy (Traefik/Nginx) → simulate network partitions by stopping proxy.
+
+Add a “search” service → apply latency via tc/netem for partial outage.
+
+Integrate chaos tools like pumba or litmus for random container kills.
+
+Create an AWS FIS template mirroring this stack on EC2 for cloud-level validation.
+
+⚠️ Safety Notice
+
+These scripts target local Docker only.
+Do not run them on production hosts or shared environments.
+Always review any iptables, tc, or docker rm commands before execution.

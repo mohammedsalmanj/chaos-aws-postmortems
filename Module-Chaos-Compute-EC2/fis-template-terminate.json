@@ -1,0 +1,27 @@
+{
+  "description": "Fill EC2 disk to 90% to test monitoring and autoscaling",
+  "targets": {
+    "EC2Instances": {
+      "resourceType": "aws:ec2:instance",
+      "resourceTags": { "ChaosTarget": "ecom-api" },
+      "selectionMode": "COUNT(1)"
+    }
+  },
+  "actions": {
+    "DiskFill": {
+      "actionId": "aws:ssm:send-command",
+      "parameters": {
+        "documentName": "AWSFIS-RunShellScript",
+        "documentParameters": {
+          "commands": [
+            "fallocate -l $(($(df --output=size -k / | tail -1)*90/100))K /tmp/fillfile",
+            "df -h"
+          ]
+        }
+      },
+      "targets": { "EC2Instances": "EC2Instances" }
+    }
+  },
+  "roleArn": "arn:aws:iam::<ACCOUNT_ID>:role/FISExperimentRole",
+  "stopConditions": [{ "source": "none" }]
+}

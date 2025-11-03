@@ -1,0 +1,50 @@
+{
+  "description": "Simulate disk fill on one EC2 instance to validate application resilience",
+  "targets": {
+    "EC2Instances": {
+      "resourceType": "aws:ec2:instance",
+      "resourceTags": {
+        "ChaosTarget": "petsite"
+      },
+      "selectionMode": "COUNT(1)"
+    }
+  },
+  "actions": {
+    "EC2DiskFillTest": {
+      "actionId": "aws:ssm:send-command",
+      "parameters": {
+        "documentName": "AWSFIS-Run-Disk-Fill",
+        "documentParameters": {
+          "DurationSeconds": "600",
+          "Percent": "95",
+          "InstallDependencies": "True"
+        }
+      },
+      "targets": {
+        "EC2Instances": "EC2Instances"
+      }
+    }
+  },
+  "stopConditions": [
+    {
+      "source": "none"
+    }
+  ],
+  "roleArn": "arn:aws:iam::<ACCOUNT_ID>:role/ec2-fis-role",
+  "logConfiguration": {
+    "cloudWatchLogsConfiguration": {
+      "logGroupArn": "arn:aws:logs:<REGION>:<ACCOUNT_ID>:log-group:/aws/fis/FisExperiments"
+    },
+    "logSchemaVersion": 2
+  },
+  "experimentOptions": {
+    "accountTargeting": "single-account",
+    "cloudWatchAlarmBehavior": "continue"
+  },
+  "tags": {
+    "Name": "FIS-Workshop-EC2-DiskFill-Test",
+    "Environment": "chaos-lab"
+  }
+}
+
+

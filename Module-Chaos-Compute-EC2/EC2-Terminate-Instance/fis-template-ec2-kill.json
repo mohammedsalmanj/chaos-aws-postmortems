@@ -1,0 +1,32 @@
+{
+  "description": "Terminate EC2 Spot Instance after short wait to test checkpoint recovery",
+  "targets": {
+    "SpotInstances": {
+      "resourceType": "aws:ec2:instance",
+      "resourceTags": { "ChaosTarget": "spot-job" },
+      "selectionMode": "COUNT(1)"
+    }
+  },
+  "actions": {
+    "AllowSomeCompletion": {
+      "actionId": "aws:fis:wait",
+      "parameters": { "duration": "180" }
+    },
+    "TerminateSpotInstance": {
+      "actionId": "aws:ec2:terminate-instances",
+      "startAfter": [ "AllowSomeCompletion" ],
+      "targets": { "SpotInstances": "SpotInstances" }
+    }
+  },
+  "roleArn": "arn:aws:iam::<ACCOUNT_ID>:role/FisWorkshopSpotRole",
+  "logConfiguration": {
+    "cloudWatchLogsConfiguration": {
+      "logGroupArn": "arn:aws:logs:<REGION>:<ACCOUNT_ID>:log-group:/aws/fis/FisExperiments"
+    },
+    "logSchemaVersion": 2
+  },
+  "tags": {
+    "Name": "FisWorkshopSpotTerminate",
+    "Environment": "chaos-lab"
+  }
+}
