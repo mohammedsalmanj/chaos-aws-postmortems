@@ -1,0 +1,34 @@
+{
+  "description": "Reboot Aurora Reader instance to observe application resilience and failover behavior.",
+  "targets": {
+    "DBInstances-Target-1": {
+      "resourceType": "aws:rds:db",
+      "resourceArns": [
+        "arn:aws:rds:us-east-1:123456789012:db:aurora-reader-instance-id"
+      ],
+      "selectionMode": "ALL"
+    }
+  },
+  "actions": {
+    "RebootRDSAurora": {
+      "actionId": "aws:rds:reboot-db-instances",
+      "description": "Reboot the Aurora Reader instance without failover.",
+      "parameters": {},
+      "targets": {
+        "DBInstances": "DBInstances-Target-1"
+      }
+    }
+  },
+  "stopConditions": [],
+  "roleArn": "arn:aws:iam::123456789012:role/rds-fis-role",
+  "logConfiguration": {
+    "cloudWatchLogsConfiguration": {
+      "logGroupArn": "arn:aws:logs:us-east-1:123456789012:log-group:FISExperiments"
+    },
+    "logSchemaVersion": 2
+  },
+  "tags": {
+    "Name": "FisWorkshopRds",
+    "Experiment": "RebootRDSAurora"
+  }
+}
